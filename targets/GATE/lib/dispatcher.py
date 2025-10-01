@@ -73,7 +73,6 @@ class Dispatcher(Protocol):
       # Dispatch the summary and decide whether to continue
       should_continue = self.dispatch_packet(summary_json, packet)
       if not should_continue:
-
          Logger.warn("Dispatcher: Halting pipeline as dispatch_packet returned False")
          return 'STOP'
 
@@ -91,13 +90,24 @@ class Dispatcher(Protocol):
             method='POST'  # make POST explicit
          )
          with urllib.request.urlopen(req) as response:
-            resp_data = response.read().decode('utf-8')
-            Logger.info(f"Dispatcher: Successfully sent packet summary to {self.rest_endpoint}, response: {resp_data}")
-         result = True
+            status = getattr(response, 'status', response.getcode())
+            resp_body = response.read().decode('utf-8', errors='replace')
+            if 200 <= status < 300:
+               Logger.info(f"Dispatcher: Sent packet summary to {self.rest_endpoint} (HTTP {status}), response: {resp_body}")
+               return True
+            else:
+               Logger.error(f"Dispatcher: Non-success status from {self.rest_endpoint}: HTTP {status}, response: {resp_body}")
+               return False
+      except urllib.error.HTTPError as e:
+         try:
+            body = e.read().decode('utf-8', errors='replace')
+         except Exception:
+            body = ''
+         Logger.error(f"Dispatcher: HTTPError sending packet summary to {self.rest_endpoint}: HTTP {e.code}, response: {body}")
+         return False
       except urllib.error.URLError as e:
-         Logger.error(f"Dispatcher: Failed to send packet summary to {self.rest_endpoint}, error: {e}")
-         result = False
-
-      Logger.info(f"Dispatcher: write_packet called for target '{packet.target_name}' packet '{packet.packet_name}'")
-
-      return result
+         Logger.error(f"Dispatcher: URLError sending packet summary to {self.rest_endpoint}, error: {e}")
+         return False
+      except Exception as e:
+         Logger.error(f"Dispatcher: Unexpected error sending packet summary to {self.rest_endpoint}: {e}")
+         return False
