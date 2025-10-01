@@ -1,0 +1,9 @@
+VARIABLE target_name     GATE
+VARIABLE cmd_port        6200   # Dest port for UDP commands
+VARIABLE tlm_read_port   6201   # Listen port for UDP telemetry inbound - update in docker-compose.yaml!!
+
+TARGET GATE <%= target_name %>
+INTERFACE <%= target_name %>_INT openc3/interfaces/udp_interface.py host.docker.internal <%= cmd_port %> <%= tlm_read_port %>
+  MAP_TARGET <%= target_name %>
+  # With protocol write we make sure every outgoing packet goes through dispatcher script waiting for approval
+  PROTOCOL WRITE <%= target_name %>/lib/dispatcher.py arg1
