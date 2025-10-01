@@ -15,9 +15,9 @@ class Dispatcher(Protocol):
    the same packet to continue the pipeline.
    """
 
-   def __init__(self, test_arg, allow_empty_data=None):
-      super().__init__(allow_empty_data)      
-      self.arg = test_arg
+   def __init__(self, rest_endpoint, allow_empty_data=None):
+      super().__init__(allow_empty_data)
+      self.rest_endpoint = rest_endpoint
       self.allow_empty_data = ConfigParser.handle_true_false_none(allow_empty_data)
 
    def write_packet(self, packet):
@@ -25,8 +25,8 @@ class Dispatcher(Protocol):
       Called BEFORE encoding. Returning the Packet continues the write;
       returning self.STOP drops; returning self.DISCONNECT disconnects interface.
       """
-      Logger.info(f"GateProtocol: write_packet called for target '{packet.target_name}' packet '{packet.packet_name}'")
-      Logger.info(f"GateProtocol: test_arg = '{self.arg}'")
+      Logger.info(f"Dispatcher: write_packet called for target '{packet.target_name}' packet '{packet.packet_name}'")
+      Logger.info(f"Dispatcher: packet as JSON: {packet.as_json()}")
 
       # IMPORTANT: return the SAME packet to continue the pipeline unchanged
       return packet
