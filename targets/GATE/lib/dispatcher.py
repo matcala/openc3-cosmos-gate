@@ -49,16 +49,17 @@ class Dispatcher(Protocol):
       Called BEFORE encoding. Returning the Packet continues the write;
       returning self.STOP drops; returning self.DISCONNECT disconnects interface.
       """
+      keycloak_id = self.keycloak_identity or "unknown"
       pkt_name = packet.packet_name
       tgt_name = packet.target_name
       stream_id = packet.read_item("STREAM_ID", "RAW") \
-            if any(i.name == "STREAM_ID" for i in getattr(packet, "sorted_items", [])) else None
+            if any(i.name == "STREAM_ID" for i in getattr(packet, "sorted_items", [])) else "None"
       func_code = packet.read_item("FUNCTION_CODE", "RAW") \
-            if any(i.name == "FUNCTION_CODE" for i in getattr(packet, "sorted_items", [])) else None
+            if any(i.name == "FUNCTION_CODE" for i in getattr(packet, "sorted_items", [])) else "None"
       
       # Build a summary dictionary
       summary = {
-         "keycloak_id": self.keycloak_identity,
+         "keycloak_id": keycloak_id,
          "target": tgt_name,
          "packet": pkt_name,
          "stream_id": stream_id,
