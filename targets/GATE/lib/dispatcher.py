@@ -17,6 +17,8 @@ class Dispatcher(Protocol):
       self.rest_endpoint = self._normalize_endpoint(rest_endpoint)
       self.keycloak_identity = keycloak_identity
       self.allow_empty_data = ConfigParser.handle_true_false_none(allow_empty_data)
+      # Store raw response bytes from REST calls (set on every dispatch)
+      self.last_response_bytes = None
 
    def _normalize_endpoint(self, rest_endpoint: str) -> str:
       """
@@ -53,18 +55,18 @@ class Dispatcher(Protocol):
       pkt_name = packet.packet_name
       tgt_name = packet.target_name
       stream_id = packet.read_item("STREAM_ID", "RAW") \
-            if any(i.name == "STREAM_ID" for i in getattr(packet, "sorted_items", [])) else "None"
+            if any(i.name == "STREAM_ID" for i in getattr(packet, "sorted_items", [])) else 0
       func_code = packet.read_item("FUNCTION_CODE", "RAW") \
-            if any(i.name == "FUNCTION_CODE" for i in getattr(packet, "sorted_items", [])) else "None"
+            if any(i.name == "FUNCTION_CODE" for i in getattr(packet, "sorted_items", [])) else 0
       
-      # Build a summary dictionary
+      # Build a summary dictionary (match main.rs CMDSummary)
       summary = {
          "keycloak_id": keycloak_id,
          "target": tgt_name,
-         "packet": pkt_name,
+         "packet_name": pkt_name,
          "stream_id": stream_id,
          "function_code": func_code
-         }
+      }
       
       # Convert to JSON
       summary_json = json.dumps(summary).encode('utf-8')
@@ -74,10 +76,24 @@ class Dispatcher(Protocol):
       # Dispatch the summary and decide whether to continue
       should_continue = self.dispatch_packet(summary_json, packet)
       if not should_continue:
-         Logger.warn("Dispatcher: Halting pipeline as dispatch_packet returned False")
+         Logger.warn("Dispatcher: Halting command pipeline as dispatch_packet returned False")
          return 'STOP'
 
-      Logger.info("Dispatcher: Packet summary dispatched successfully")
+      # Use REST bytes to populate SER_CMD before returing packet for encoding CMD (BLOCK 1024 bits = 128 bytes)
+      try:
+         resp = self.last_response_bytes or b''
+         Logger.info(f"Dispatcher: Writing SER_CMD with {len(resp)} bytes from REST response")
+         packet.write("SER_CMD", resp)
+      except Exception as e:
+         Logger.error(f"Dispatcher: Failed to set SER_CMD on packet: {e}")
+         return 'STOP'
+
+      # Optionally log what we received from the REST API
+      if self.last_response_bytes is not None:
+         Logger.info(f"Dispatcher: REST response bytes length={len(self.last_response_bytes)}")
+
+      Logger.info("Dispatcher: Packet summary dispatched and updated successfully")
+      Logger.info(f"Final packet: {packet.as_json()}")
       # IMPORTANT: return the SAME packet to continue the pipeline unchanged
       return packet
 
@@ -92,23 +108,55 @@ class Dispatcher(Protocol):
          )
          with urllib.request.urlopen(req) as response:
             status = getattr(response, 'status', response.getcode())
-            resp_body = response.read().decode('utf-8', errors='replace')
+            # Read raw bytes so we can accept application/octet-stream without corrupting data
+            body_bytes = response.read()
+            self.last_response_bytes = body_bytes
+            # Try to get a content type for logging
+            try:
+               content_type = response.headers.get_content_type()
+            except Exception:
+               content_type = None
+
             if 200 <= status < 300:
-               Logger.info(f"Dispatcher: Sent packet summary to {self.rest_endpoint} (HTTP {status}), response: {resp_body}")
+               # For binary payloads, don't log content to avoid noise
+               if content_type == 'application/octet-stream':
+                  Logger.info(f"Dispatcher: Sent packet summary to {self.rest_endpoint} (HTTP {status}), received {len(body_bytes)} bytes (octet-stream)")
+               else:
+                  # Best-effort decode for text responses
+                  preview = ''
+                  try:
+                     preview = body_bytes.decode('utf-8', errors='replace')
+                  except Exception:
+                     preview = f"<{len(body_bytes)} bytes>"
+                  Logger.info(f"Dispatcher: Sent packet summary to {self.rest_endpoint} (HTTP {status}), response: {preview}")
                return True
             else:
-               Logger.error(f"Dispatcher: Non-success status from {self.rest_endpoint}: HTTP {status}, response: {resp_body}")
+               # Non-success: log with safe preview
+               preview = ''
+               try:
+                  preview = body_bytes.decode('utf-8', errors='replace')
+               except Exception:
+                  preview = f"<{len(body_bytes)} bytes>"
+               Logger.error(f"Dispatcher: Non-success status from {self.rest_endpoint}: HTTP {status}, response: {preview}")
                return False
       except urllib.error.HTTPError as e:
+         # Read and store error body bytes safely
          try:
-            body = e.read().decode('utf-8', errors='replace')
+            body_bytes = e.read()
          except Exception:
-            body = ''
+            body_bytes = b''
+         self.last_response_bytes = body_bytes
+         try:
+            body = body_bytes.decode('utf-8', errors='replace')
+         except Exception:
+            body = f"<{len(body_bytes)} bytes>"
          Logger.error(f"Dispatcher: HTTPError sending packet summary to {self.rest_endpoint}: HTTP {e.code}, response: {body}")
          return False
       except urllib.error.URLError as e:
+         self.last_response_bytes = None
          Logger.error(f"Dispatcher: URLError sending packet summary to {self.rest_endpoint}, error: {e}")
          return False
       except Exception as e:
+         self.last_response_bytes = None
          Logger.error(f"Dispatcher: Unexpected error sending packet summary to {self.rest_endpoint}: {e}")
          return False
