@@ -54,11 +54,16 @@ class Dispatcher(Protocol):
       keycloak_id = self.keycloak_identity or "unknown"
       pkt_name = packet.packet_name
       tgt_name = packet.target_name
-      stream_id = packet.read_item("STREAM_ID", "RAW") \
-            if any(i.name == "STREAM_ID" for i in getattr(packet, "sorted_items", [])) else 0
-      func_code = packet.read_item("FUNCTION_CODE", "RAW") \
-            if any(i.name == "FUNCTION_CODE" for i in getattr(packet, "sorted_items", [])) else 0
+      stream_id_item = packet.get_item("CCSDS_STREAMID")
+      func_code_item = packet.get_item("CCSDS_FC")
+      stream_id = packet.read_item(stream_id_item)
+      func_code = packet.read_item(func_code_item)
       
+      # Let NOOP commands pass through without enforcing policy
+      if func_code == 1:
+         Logger.info(f"Dispatcher: Received NOOP command (FUNCTION_CODE=1); passing through without dispatch")
+         return packet
+
       # Build a summary dictionary (match main.rs CMDSummary)
       summary = {
          "keycloak_id": keycloak_id,
@@ -68,7 +73,7 @@ class Dispatcher(Protocol):
          "function_code": func_code
       }
       
-      # Convert to JSON
+      # Serialize to JSON
       summary_json = json.dumps(summary).encode('utf-8')
       Logger.info(f"Dispatcher: Prepared packet summary JSON: {summary_json}")
       Logger.info(f"Dispatcher: Sending packet summary to {self.rest_endpoint}")
@@ -91,10 +96,12 @@ class Dispatcher(Protocol):
       # Optionally log what we received from the REST API
       if self.last_response_bytes is not None:
          Logger.info(f"Dispatcher: REST response bytes length={len(self.last_response_bytes)}")
+         summary["serialized_command_bytes"] = list(self.last_response_bytes)
+         Logger.info(f"Final packet: {summary}")
 
       Logger.info("Dispatcher: Packet summary dispatched and updated successfully")
-      Logger.info(f"Final packet: {packet.as_json()}")
-      # IMPORTANT: return the SAME packet to continue the pipeline unchanged
+      # IMPORTANT: return the SAME packet SCHEMA to continue the pipeline unchanged.
+      # Updating existing packet items is allowed
       return packet
 
    def dispatch_packet(self, summary_json, packet):
