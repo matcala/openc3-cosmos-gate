@@ -4,7 +4,7 @@ VARIABLE tlm_read_port   6201                       # Listen port for UDP teleme
 VARIABLE rest_endpoint   host.docker.internal:8000/authorize   # Listening endpoint which aranya instance exposes to receive packet
 
 TARGET GATE <%= _target_name %>
-INTERFACE <%= _target_name %>_INT openc3/interfaces/udp_interface.py host.docker.internal <%= cmd_port %> <%= tlm_read_port %>
+INTERFACE <%= _target_name %>_INT udp_interface.rb host.docker.internal <%= cmd_port %> <%= tlm_read_port %>
   MAP_TARGET <%= _target_name %>
   # With protocol write we make sure every outgoing packet goes through dispatcher script waiting for approval
-  PROTOCOL WRITE <%= _target_name %>/lib/dispatcher.py <%= rest_endpoint %>
+  PROTOCOL WRITE <%= _target_name %>/lib/dispatcher.rb <%= rest_endpoint %>
