@@ -8,7 +8,7 @@ class Dispatcher(Protocol):
    """
    A WRITE protocol that inspects the command Packet (pre-encode),
    logs/sends a JSON summary to an external service, then returns
-   the same packet to continue the pipeline.
+   the packet to continue the command pipeline.
    """
 
    def __init__(self, rest_endpoint:str, keycloak_identity=None, allow_empty_data=None):
@@ -64,7 +64,7 @@ class Dispatcher(Protocol):
          Logger.info(f"Dispatcher: Received NOOP command (FUNCTION_CODE=1); passing through without dispatch")
          return packet
 
-      # Build a summary dictionary (match main.rs CMDSummary)
+      # Build a summary dictionary (match Aranya Gate's lib.rs CMDSummary)
       summary = {
          "keycloak_id": keycloak_id,
          "target": tgt_name,
