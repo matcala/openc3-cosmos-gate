@@ -16,10 +16,10 @@ def cmd_listener():
     log(f"listening for commands on UDP :{CMD_LISTEN_PORT}")
     while True:
         data, addr = s.recvfrom(4096)
-        # Minimal decode: first byte is ID (must be 1 for NOOP)
+        # Minimal decode of command packet
         pkt_id = data[0] if data else None
+        # No side-effects, simply log the command receipt
         log(f"cmd from {addr} len={len(data)} id={pkt_id}")
-        # No side-effect; it’s a NOOP.
 
 def tlm_sender():
     s_main = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -43,10 +43,7 @@ if __name__ == "__main__":
     threading.Thread(target=cmd_listener, daemon=True).start()
     tlm_sender()
 
-# target still listens for NOOP on 6100/udp
 # docker run --rm --name udptgt \
-#   -p 6100:6100/udp \
-#   -e TLM_DEST_HOST=host.docker.internal \
-#   -e TLM_DEST_PORT=6202 \
+#   -p 6200:6200/udp \
 #   udptgt
 # 
