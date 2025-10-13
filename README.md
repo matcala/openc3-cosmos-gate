@@ -17,7 +17,7 @@ This plugin is one of four pieces used to simulate an operator sending telecomma
     - `- "127.0.0.1:6201:6201/udp"`
 - Aranya cosmos-gate instance
   - Exposes a REST API and processes outgoing telecommands from this plugin’s dispatcher by applying an Aranya Policy.
-  - See the cosmos-gate example README for setup: https://github.com/matcala/aranya.git
+  - See the [cosmos-gate example README](https://github.com/matcala/aranya/tree/d3c1cd841aba6d64c52d5a0f50637945d045ac87/examples/rust/cosmos-gate) for setup.
 - Target application
   - A simple Python “satellite” app in Docker. From the `tools` directory:
     - Build: `docker build -t target .`
@@ -60,9 +60,8 @@ The first and only argument `<%= rest_endpoint %>` is passed to the Python scrip
    - In CmdTlmServer, observe the `rx bytes` and `tlm pkts` counters increasing every second.
    - Use the Packet Viewer tool to inspect inbound telemetry packets.
 
-<!-- TODO: update link to example after merging branches -->
 2. Run the Aranya gate:
-   - Follow the [example README](https://github.com/matcala/aranya.git) for setup.
+   - Follow the [example README](https://github.com/matcala/aranya/tree/d3c1cd841aba6d64c52d5a0f50637945d045ac87/examples/rust/cosmos-gate) for setup.
    - Ensure the REST endpoint matches the dispatcher’s configuration.
 
 3. Test the integration:
