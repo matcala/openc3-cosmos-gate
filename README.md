@@ -39,7 +39,7 @@ The defaults in this repo should work for the demo without changes.
 
 ## Build and Install the Plugin
 1. Clone this repository into your `cosmos-project` root.
-2. Build the plugin to produce a `.gem` file (or use the provided `openc3-cosmos-gate-1.0.5.gem`).
+2. Build the plugin to produce a `.gem` file (or use the provided `openc3-cosmos-gate-1.0.0.gem`).
 3. Install the gem via the COSMOS Admin portal.
 4. Verify in CmdTlmServer:
    - Interface `GATE_INT` appears and shows CONNECTED.
