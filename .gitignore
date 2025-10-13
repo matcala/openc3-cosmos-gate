@@ -1,3 +1,2 @@
 node_modules
-openc3-cosmos-gate-*.gem
 targets/GATE/lib/packet_as_json_example.py

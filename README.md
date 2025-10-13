@@ -12,7 +12,7 @@ This COSMOS plugin integrates Aranya into a COSMOS commanding workflow. By inser
 This plugin is one of four pieces used to simulate an operator sending telecommands via COSMOS:
 
 - OpenC3 COSMOS
-  - You need access to the COSMOS CLI to build this plugin, or you can install the prebuilt gem `openc3-cosmos-gate-1.0.5.gem` via the COSMOS Admin portal.
+  - You need access to the COSMOS CLI to build this plugin, or you can install the prebuilt gem `openc3-cosmos-gate-1.0.0.gem` via the COSMOS Admin portal.
   - Update COSMOS’ `docker-compose.yaml` to allow inbound UDP into the `openc3-operator` container. Add to the ports section:
     - `- "127.0.0.1:6201:6201/udp"`
 - Aranya cosmos-gate instance
