@@ -13,7 +13,7 @@ class Dispatcher(Protocol):
 
    def __init__(self, rest_endpoint:str, keycloak_identity=None, allow_empty_data=None):
       super().__init__(allow_empty_data)
-      # Normalize endpoints like "localhost:8000/authorize" -> "http://localhost:8000/authorize"
+      # Normalize endpoints like "localhost:8080/authorize" -> "http://localhost:8080/authorize"
       self.rest_endpoint = self._normalize_endpoint(rest_endpoint)
       self.keycloak_identity = keycloak_identity
       self.allow_empty_data = ConfigParser.handle_true_false_none(allow_empty_data)
