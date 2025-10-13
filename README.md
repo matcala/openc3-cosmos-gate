@@ -4,7 +4,8 @@ This COSMOS plugin integrates Aranya into a COSMOS commanding workflow. By inser
 
 ## Prerequisites
 1. [Docker Desktop](https://docs.docker.com/get-started/get-docker/) or a Docker engine with Docker Compose
-2. [rustup](https://rustup.rs/)
+2. OpenC3 COSMOS set up and running. Follow the installation guide [here](https://docs.openc3.com/docs/getting-started/installation)
+3. [rustup](https://rustup.rs/)
 
 > Note: Tested on Apple Silicon macOS; Linux should behave similarly. Aranya does not support Windows. Running this on Windows would require additional reconfiguration. If you make it work on Windows, please let us know.
 
@@ -67,8 +68,8 @@ The first and only argument `<%= rest_endpoint %>` is passed to the Python scrip
 3. Test the integration:
    - Open the Command Sender page in COSMOS.
    - Two telecommands are defined for the `GATE` target:
-     - Send the `NOOP` command and check CmdTlmServer logs. The dispatcher skips the Aranya gate for this command.
-     - Send the `ARANYA_EP_EXP1` command. Logs show the dispatcher sending the packet to the Aranya gate. If the policy allows, the Aranya gate returns a serialized command, which the dispatcher inserts into the `SER_CMD` field. The packet is then sent to the mock target, which logs receipt.
+     - Send the `NOOP` command and check the logs in the CmdTlmServer tool. The dispatcher skips the Aranya gate for this command.
+     - Send the `ARANYA_EP_EXP1` command. CmdTlmServer logs show the dispatcher sending the packet to the Aranya gate. The Aranya gate server logs will also show that a packet has been dispatched its way. If the policy allows, the Aranya gate returns a serialized command, which the dispatcher inserts into the `SER_CMD` field. The packet is then sent to the mock target, which logs receipt.
 
 Feel free to modify the dispatcher script to change behavior. The CCSDS function code field determines which packets are checked against the policy.
 
