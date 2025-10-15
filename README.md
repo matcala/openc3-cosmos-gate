@@ -8,8 +8,8 @@ This plugin inserts an Aranya gate into the COSMOS command path, so you can enfo
 
 1. [Docker Desktop](https://docs.docker.com/get-started/get-docker/) or a Docker engine with Docker Compose
 2. An OpenC3 COSMOS deployment, see the [installation guide](https://docs.openc3.com/docs/getting-started/installation)
-3. [rustup](https://rustup.rs/)
-4. Access to the COSMOS CLI, or the prebuilt gem `openc3-cosmos-gate-1.0.0.gem`
+3. Access to the COSMOS CLI, or the prebuilt gem `openc3-cosmos-gate-1.0.0.gem`
+4. [rustup](https://rustup.rs/)
 
 If you feel lost at any point, see Helpers at the end of this document.
 
@@ -28,14 +28,10 @@ This plugin is one of four pieces that simulate an operator sending telecommands
 - **Aranya cosmos-gate instance**
   - Exposes a REST API and evaluates outgoing telecommands from this plugin’s dispatcher against an Aranya policy.
   - Use the [cosmos-gate example README](https://github.com/matcala/aranya/tree/d3c1cd841aba6d64c52d5a0f50637945d045ac87/examples/rust/cosmos-gate) for setup.
+<!-- TODO: update link and remove permalink -->
 
 - **Target application**
-  - A simple Python “satellite” app in Docker. From the `tools` directory:
-  
-    ```bash
-    docker build -t target .
-    docker run --rm --name target -p 6200:6200/udp target:latest
-    ```
+  - A simple Python “satellite” app in Docker, located in the `tools` directory.
   - Exposes UDP 6200 to receive COSMOS commands.
 
 - **This COSMOS plugin**
@@ -62,14 +58,16 @@ The following parameters must align across components. Defaults in this repo sho
 
 ## Build and Install the Plugin
 
-1. If COSMOS is running, you should have a local clone of the [OpenC3 COSMOS repo](https://github.com/OpenC3/cosmos-project.git).
-2. Clone this repository inside the `cosmos-project` root.
-3. Verify COSMOS is up by visiting [http://localhost:2900/](http://localhost:2900/).
-4. Build the plugin with the COSMOS CLI to produce a `.gem`, or use the provided `openc3-cosmos-gate-1.0.0.gem`.
-5. Install the plugin in COSMOS:
+1. Verify COSMOS is running by visiting [http://localhost:2900/](http://localhost:2900/).
+2. Build this plugin with the COSMOS CLI to produce a `.gem`, or use the provided `openc3-cosmos-gate-1.0.0.gem`.
+
+    ```bash
+    openc3.sh cli rake build VERSION=X.X.X  # e.g., 2.0.0
+    ```
+3. Install the plugin in COSMOS:
    - Open the Admin Console.
    - Click **Install From File**, select the `.gem` you built, or the prebuilt one.
-6. Verify in CmdTlmServer:
+4. Verify in CmdTlmServer:
    - Interface `GATE_INT` appears and shows **CONNECTED**.
    - Target `GATE` routes telecommands and telemetry through `GATE_INT`.
 
@@ -87,13 +85,26 @@ You can learn more about [custom COSMOS protocols here](https://docs.openc3.com/
 ## Running the Demo
 
 1. **Start the mock target container**
+
+    - Build the container image:
+
+      ```bash
+      cd tools
+      docker build -t target .
+      ```
+    - And run it:
+
+      ```bash
+      docker run --rm --name target -p 6200:6200/udp target:latest
+      ```
    - The Python app emits telemetry every second to the configured UDP port as defined in `openc3-cosmos-gate/targets/GATE/cmd_tlm/tlm.txt`.
-   - In CmdTlmServer, observe `rx bytes` and `tlm pkts` increase every second.
-   - Use Packet Viewer to inspect inbound telemetry.
+   - In the CmdTlmServer view, observe `rx bytes` and `tlm pkts` increase every second.
+   - Use the Packet Viewer tool to inspect inbound telemetry.
 
 2. **Run the Aranya gate**
    - Follow the [example README](https://github.com/matcala/aranya/tree/d3c1cd841aba6d64c52d5a0f50637945d045ac87/examples/rust/cosmos-gate).
    - Ensure the REST endpoint matches the dispatcher configuration.
+   <!-- update link -->
 
 3. **Test the integration**
    - Open the Command Sender in COSMOS.
