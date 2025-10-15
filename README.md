@@ -27,7 +27,7 @@ This plugin is one of four pieces that simulate an operator sending telecommands
 
 - **Aranya cosmos-gate instance**
   - Exposes a REST API and evaluates outgoing telecommands from this plugin’s dispatcher against an Aranya policy.
-  - Use the [cosmos-gate example README](https://github.com/matcala/aranya/tree/main/examples/rust/cosmos-gate) for setup.
+  - Use the [cosmos-gate example README](https://github.com/aranya-project/aranya-cosmos/tree/main/examples/rust/cosmos-gate) for setup.
 
 - **Target application**
   - A simple Python “satellite” app in Docker, located in the `tools` directory.
@@ -103,7 +103,7 @@ You can learn more about [custom COSMOS protocols here](https://docs.openc3.com/
    - Use the Packet Viewer tool to inspect inbound telemetry.
 
 2. **Run the Aranya gate**
-   - Follow the [example README](https://github.com/matcala/aranya/tree/main/examples/rust/cosmos-gate).
+   - Follow the [example README](https://github.com/aranya-project/aranya-cosmos/tree/main/examples/rust/cosmos-gate).
    - Ensure the REST endpoint matches the dispatcher configuration.
 
 3. **Test the integration**
