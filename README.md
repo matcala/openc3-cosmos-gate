@@ -32,7 +32,7 @@ This plugin is one of four pieces that simulate an operator sending telecommands
 
 - **Target application**
   - A simple Python “satellite” app in Docker, located in the `tools` directory.
-  - Exposes UDP 6200 to receive COSMOS commands.
+  - Exposes **UDP 6200** to receive COSMOS commands.
 
 - **This COSMOS plugin**
   - Routes telecommands through a custom WRITE protocol to the dispatcher, which posts to the Aranya gate.
@@ -61,9 +61,11 @@ The following parameters must align across components. Defaults in this repo sho
 1. Verify COSMOS is running by visiting [http://localhost:2900/](http://localhost:2900/).
 2. Build this plugin with the COSMOS CLI to produce a `.gem`, or use the provided `openc3-cosmos-gate-1.0.0.gem`.
 
-    ```bash
-    openc3.sh cli rake build VERSION=X.X.X  # e.g., 2.0.0
-    ```
+    - From inside this directory:
+
+      ```bash
+      openc3.sh cli rake build VERSION=X.X.X  # e.g., 2.0.0
+      ```
 3. Install the plugin in COSMOS:
    - Open the Admin Console.
    - Click **Install From File**, select the `.gem` you built, or the prebuilt one.
@@ -98,7 +100,7 @@ You can learn more about [custom COSMOS protocols here](https://docs.openc3.com/
       docker run --rm --name target -p 6200:6200/udp target:latest
       ```
    - The Python app emits telemetry every second to the configured UDP port as defined in `openc3-cosmos-gate/targets/GATE/cmd_tlm/tlm.txt`.
-   - In the CmdTlmServer view, observe `rx bytes` and `tlm pkts` increase every second.
+   - In the COSMOS CmdTlmServer view, observe `rx bytes` and `tlm pkts` increase every second.
    - Use the Packet Viewer tool to inspect inbound telemetry.
 
 2. **Run the Aranya gate**
