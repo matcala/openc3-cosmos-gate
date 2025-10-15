@@ -1,0 +1,4 @@
+[submodule "aranya"]
+	path = aranya
+	url = https://github.com/matcala/aranya.git
+	branch = main
